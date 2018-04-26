@@ -1,0 +1,25 @@
+#topo{ 
+    display: inline-flex;
+}
+#menu1{
+	border-style: outset;
+	min-width: 50%;
+	max-width: 600%;
+	background-color: grey;
+}
+canvas{
+	min-width: 150%;
+	max-width: 200%;
+}
+
+button{
+	width: 40%;
+	
+}
+input{
+	width: 35%
+}
+
+#dy{
+	width: 80%;
+}
