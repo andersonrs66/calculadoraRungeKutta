@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <title>Runge-Kutta de 4º Ordem</title>
+    </head>
+
+<body>
+
+
+<!-- **************************************************************************
+arquivo estilo.css. embuti junto do html para facilitar o envio para avaliação.
+serve para formatar a pagina web.
+*******************************************************************************-->
+<style>
+
+#topo{ 
+    display: inline-flex;
+}
+#menu1{
+	border-style: outset;
+	min-width: 50%;
+	max-width: 600%;
+	background-color: grey;
+}
+canvas{
+	min-width: 150%;
+	max-width: 200%;
+}
+
+button{
+	width: 40%;
+	
+}
+input{
+	width: 35%
+}
+
+#dy{
+	width: 80%;
+}
+</style>
+<!-- **********************
+FIM do arquivo estilo.css.
+************************** -->
+
+
+<!-- Página Web -->
+<div id="topo">
+	<div id="menu1">
+		<fieldset>
+			<legend> Calculadora Runge Kutta de 4º Ordem </legend>
+			y'=<input type="text" id="dy" name="dy" value="-2*y">
+			<hr>
+			Intervalo:
+			<br>
+			X0=<input type="text" id="a" name="lastname" value="0">
+			<br>
+			Xn=<input type="text" id="b" name="lastname" value="1">
+			<hr>
+  			Passo (h)= <input type="text" id="h" name="lastname" value="0.2">
+  			<br>
+  			y0 = <input type="text" id="y0" name="lastname" value="2">
+  			<br>
+  			<button onclick="main()">Calcular</button>
+  			<button onclick="limpar()">Limpar</button>
+  			<br>
+  		</fieldset>
+	</div>
+	<div id="grafico">
+		<fieldset>
+		<label>Gráfico da função</fieldset>
+		<canvas id="myCanvas" width="200" height="200" style="border:2px solid #6f6f6f;">
+		Your browser does not support the HTML5 canvas tag.</canvas>
+		</fieldset>
+	</div>
+</div>
+
+<div id="tabela"></div>
+
+
+<script>
+/*******************************************
+	este script contém as funções:
+	
+	main() - função principal
+	k2() - calcula k2
+	K3() - calcula k3
+	k4() - calcula k4
+	criarTabela() - função para gerar a tabela a partir do resultado
+*/
+
+// declaraçã de variáveis
+var n=0;
+var xn=0;
+var yn=0;
+var k1n=0;
+var k2n=0;
+var k3n=0;
+var k4n=0;
+	
+//capturar valores (aqui são variáveis globais)
+var x = eval(document.getElementById("a").value);//x0 = a
+var y = eval(document.getElementById("y0").value);
+var b = eval(document.getElementById("b").value);
+var passo = eval(document.getElementById("h").value);
+var dy = document.getElementById("dy").value;
+
+// função para limpar a página.
+// mesma função do botão F5 do teclado.
+function limpar(){
+	location.reload();
+}
+
+// Função principal. Realiza o cálculo a partir dos valores inseridos pelo usuário
+// gera um gráfico e uma tabela com os resultados.
+function main(){
+	
+	// captura valores
+	x = eval(document.getElementById("a").value);//x0 = a
+	y = eval(document.getElementById("y0").value);
+	b = eval(document.getElementById("b").value);
+	passo = eval(document.getElementById("h").value);
+	dy = document.getElementById("dy").value;
+
+ 	var tabResposta = []; //array da tabela resposta
+ 	// adiciona cabeçalho da tabela
+ 	tabResposta[0] = ["n", "X", "Y", "K1", "K2", "K3", "K4"]; 
+
+	// calcula quantas iterações são necessárias 
+	var iTotal = (b-x)/passo;
+	
+	//iteração 0 - primeira iteração difere das outras por não precisar calcular xn e yn
+	n = 0;
+	xn = x;
+	
+	yn = y;
+	k1n = eval(dy); //função eval, retorna a resposta da função após substituri os valores de x e y
+	k2n = k2(xn,yn,dy,k1n); 
+	k3n = k3(xn,yn,dy,k2n);
+	k4n = k4(xn,yn,dy,k3n);
+	
+	criaAgulha(xn,yn); // posiciona a agulha no ponto (x0 ; y0)
+	
+	tabResposta.push([n, x, y, k1n, k2n, k3n, k4n]); // adiciona primeira iteração no array da tabela
+
+	// iteração 1 até n
+	//
+	// calculei anteriormente quantas iterações serão necessárias.
+	// posso implementar futuramente uma condição para interromper
+	// o calculo caso o numero de iterações seja "muito alto".
+	for (i=1; i <= iTotal; i++){
+	
+		x = x + passo; // calcula x para proxima iteração
+		y = y + ((passo/6)*(k1n+(2*k2n)+(2*k3n)+k4n)); // calcula y para próxima iteração
+
+		n = i;
+		xn = x;
+		yn = y;
+		k1n = eval(dy);
+		k2n = k2(xn,yn,dy,k1n);
+		k3n = k3(xn,yn,dy,k2n);
+		k4n = k4(xn,yn,dy,k3n);
+		
+		moveAgulha(xn,yn); // desenha uma linha do ponto anterior até o novo ponto (xn ; yn)
+		tabResposta.push([n, x, y, k1n, k2n, k3n, k4n]); // adiciona iteração no array da tabela
+	}
+	
+	//cria a tabela a partir do array criado no laço "for" anterior
+    document.getElementById("tabela").appendChild(criarTabela(tabResposta));
+}
+
+// função que calcula o valor de k2
+function k2(x, y, func, k1) {
+	x=x+(passo/2);
+	y=y+(passo/2)*k1;
+	return eval(func);
+}
+
+// função que calcula o valor de k3
+function k3(x, y, func, k2) {
+	x = x + (passo/2);
+	y = y + (passo/2)*k2;
+	return eval(func);
+}
+
+// função que calcula o valor de k4
+function k4(x, y, func, k3) {
+	x = x + passo;
+	y = y + passo*k3;
+	return eval(func);
+}
+
+// função que recebe um array e cria uma tabela para apresentar os resultados
+//
+// Créditos no link:
+// http://pt.stackoverflow.com/questions/49581/criar-tabela-din%C3%A2mica-em-js-para-utilizar-em-html
+
+function criarTabela(conteudo) {
+  var tabela = document.createElement("table");
+  var thead = document.createElement("thead");
+  var tbody=document.createElement("tbody");
+  var thd=function(i){return (i==0)?"th":"td";};
+  for (var i=0;i<conteudo.length;i++) {
+    var tr = document.createElement("tr");
+    for(var o=0;o<conteudo[i].length;o++){
+      var t = document.createElement(thd(i));
+      var texto=document.createTextNode(conteudo[i][o]);
+      t.appendChild(texto);
+      tr.appendChild(t);
+    }
+    (i==0)?thead.appendChild(tr):tbody.appendChild(tr);
+  }
+  tabela.appendChild(thead);
+  tabela.appendChild(tbody);
+  return tabela;
+}
+
+</script>
+
+<script>
+/***********************************************************
+	
+	script para gerar o gráfico.
+	desenha o plano cartesiano e contém funções para desenhar o gráfico
+	
+	este script contém as funções:
+	
+	criaAgulha() - Posiciona a agulha no ponto (x0 ; y0)
+	moveAgulha() - Move a agulha, riscando o gráfico até novo ponto (xn; yn)
+	
+******************************************************************/
+
+
+var canvas = document.getElementById("myCanvas"); //variavel que armazena o elemento canvas
+var ctx = canvas.getContext("2d"); //variável para facilitar a manipulação do desenho
+var px = 100;//ponto x0 no gráfico
+var py = 100;//ponto y0 no gráfico
+
+//desenha linha do eixo x
+ctx.beginPath();
+ctx.moveTo(px - 100,py);
+ctx.lineTo(200,py);
+ctx.stroke();
+
+//desenha linha do eixo y
+ctx.beginPath();
+ctx.moveTo(px,py-100);
+ctx.lineTo(px,200);
+ctx.stroke();
+
+//texto do gráfico
+ctx.font = "20px arial";
+ctx.fillText("^y",px,py -80);
+ctx.font = "20px arial";
+ctx.fillText("x>",px +80,py);
+
+
+//função que coloca o ponteiro na posição x0,y0 de acordo com a função inserida pelo usuário
+function criaAgulha(xagulha,yagulha){
+	console.log("criando agulha");//mensagem para debug
+	xagulha= xagulha * 20;//multiplico por 20 para que o passo mínimo seja de 0,02 no gráfico
+	yagulha= yagulha * 20;
+	ctx.beginPath();
+	ctx.strokeStyle="blue";//cor da agulha
+	ctx.moveTo(px+xagulha,py-yagulha);
+}
+
+
+//função que move a agulha, desenhando o gráfico
+function moveAgulha(xagulha,yagulha){
+	console.log("movendo agulha para:");
+	console.log(xagulha);
+	console.log(yagulha);
+	xagulha= xagulha * 20; //novamente, multiplico o valor de entrada por 20 para melhorar a escala no gráfico
+	yagulha= yagulha * 20;
+	ctx.lineTo(px+xagulha,py-yagulha);//risca o gráfico do ponto anterior até novo ponto
+	ctx.stroke();
+}
+
+</script>
+</body>
+</html>
